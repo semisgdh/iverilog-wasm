@@ -64,6 +64,13 @@ AC_SUBST(WASM_DYLINK)
 AC_SUBST(WASM_LDFLAGS_MAIN)
 AC_SUBST(WASM_LINK_ENV)
 
+dnl After emmake make all, refresh wasm-web-bundle_icarus_dynamic/ (copy bin/*.wasm, lib/ivl, …).
+PACK_WASM_ICARUS_DYNAMIC=no
+case "$CC" in
+  *emcc*) PACK_WASM_ICARUS_DYNAMIC=yes ;;
+esac
+AC_SUBST(PACK_WASM_ICARUS_DYNAMIC)
+
 AC_PROG_RANLIB
 AC_CHECK_TOOL(LD, ld, false)
 AC_CHECK_TOOL(AR, ar, false)

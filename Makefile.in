@@ -34,6 +34,13 @@ suffix = @install_suffix@
 
 # Set to "yes" when host is *-*-emscripten* (see configure.ac).
 EMSCRIPTEN = @EMSCRIPTEN@
+# After "make all", run pack-wasm-bundle.sh when CC is emcc (see configure.ac).
+PACK_WASM_ICARUS_DYNAMIC = @PACK_WASM_ICARUS_DYNAMIC@
+ifeq ($(PACK_WASM_ICARUS_DYNAMIC),yes)
+WASM_ICARUS_PACK = @$(SHELL) $(srcdir)/scripts/pack-wasm-bundle.sh wasm-web-bundle_icarus_dynamic
+else
+WASM_ICARUS_PACK = @:
+endif
 
 prefix = @prefix@
 exec_prefix = @exec_prefix@
@@ -138,6 +145,7 @@ O = main.o async.o design_dump.o discipline.o dup_expr.o elaborate.o \
 
 all: dep config.h _pli_types.h version_tag.h ivl@EXEEXT@ version.exe iverilog-vpi.man
 	$(foreach dir,$(SUBDIRS),$(MAKE) -C $(dir) $@ && ) true
+	$(WASM_ICARUS_PACK)
 
 # In the windows world, the installer will need a dosify program to
 # dosify text files.

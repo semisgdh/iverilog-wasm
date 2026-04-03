@@ -22,4 +22,6 @@ SIDE_MODULE은 GOT 등으로 메인에서 이 이름을 가져오므로 **wasm-l
 새 SIDE_MODULE이 다른 `_Z…` GOT를 쓰면 configure의 `WASM_LDFLAGS_MAIN`에
 `-Wl,--export=…` 를 같은 방식으로 추가하면 됩니다.
 
-재생성: 저장소 루트에서 `emconfigure`/`emmake make` 후 위 pack 스크립트를 실행합니다.
+재생성: 저장소 루트에서 `emconfigure`/`emmake make` 하면 **루트 `make all` 끝에서**
+`wasm-web-bundle_icarus_dynamic/` 가 자동으로 갱신됩니다(emcc일 때만).
+수동으로만 할 때는 `scripts/pack-wasm-bundle.sh wasm-web-bundle_icarus_dynamic` 입니다.
