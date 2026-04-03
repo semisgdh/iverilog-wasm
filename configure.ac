@@ -49,11 +49,16 @@ if test "$WASM_DYLINK" = "yes"; then
   esac
 fi
 WASM_LDFLAGS_MAIN=
+WASM_LINK_ENV=
 if test "$WASM_DYLINK" = "yes"; then
   WASM_LDFLAGS_MAIN="-sMAIN_MODULE=2 -sALLOW_MEMORY_GROWTH"
+dnl Side modules expect libc globals (e.g. stderr); force stdlibs into MAIN_MODULE.
+  WASM_LINK_ENV="EMCC_FORCE_STDLIBS=1"
+  AC_MSG_NOTICE([wasm dylink: MAIN_MODULE links use EMCC_FORCE_STDLIBS=1 for libc symbols])
 fi
 AC_SUBST(WASM_DYLINK)
 AC_SUBST(WASM_LDFLAGS_MAIN)
+AC_SUBST(WASM_LINK_ENV)
 
 AC_PROG_RANLIB
 AC_CHECK_TOOL(LD, ld, false)
