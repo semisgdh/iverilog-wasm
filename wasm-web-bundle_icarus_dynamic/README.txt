@@ -15,7 +15,11 @@ SIDE_MODULE은 GOT 등으로 메인에서 이 이름을 가져오므로 **wasm-l
 
 - `EMCC_FORCE_STDLIBS=1`
 - `-Wl,--export=stdin -Wl,--export=stdout -Wl,--export=stderr`
+- `system.vpi` GOT용 C++ ABI (Itanium): `_ZNSt12length_errorD1Ev`, `_ZTISt12length_error`, `_ZTVSt12length_error`
 
-검사: 빌드 후 `node scripts/check-icarus-dylink-exports.cjs path/to/ivl.wasm` (성공 시 OK).
+검사: `node scripts/check-icarus-dylink-exports.cjs` — stdio + `system.vpi`의 GOT에서
+`stdin`/`stdout`/`stderr` 및 `_Z…` 이름이 `ivl.wasm` export에 있는지 확인합니다.
+새 SIDE_MODULE이 다른 `_Z…` GOT를 쓰면 configure의 `WASM_LDFLAGS_MAIN`에
+`-Wl,--export=…` 를 같은 방식으로 추가하면 됩니다.
 
 재생성: 저장소 루트에서 `emconfigure`/`emmake make` 후 위 pack 스크립트를 실행합니다.

@@ -51,11 +51,14 @@ fi
 WASM_LDFLAGS_MAIN=
 WASM_LINK_ENV=
 if test "$WASM_DYLINK" = "yes"; then
-dnl MAIN_MODULE must *export* stdin/stdout/stderr for side modules (GOT.mem); linking alone is not enough.
-  WASM_LDFLAGS_MAIN="-sMAIN_MODULE=2 -sALLOW_MEMORY_GROWTH -Wl,--export=stdin -Wl,--export=stdout -Wl,--export=stderr"
+dnl MAIN_MODULE must *export* symbols side modules import via GOT.{func,mem} (linking libc is not enough).
+dnl stdio + libstdc++ Itanium symbols used by e.g. system.vpi for std::length_error.
+  WASM_LDFLAGS_MAIN="-sMAIN_MODULE=2 -sALLOW_MEMORY_GROWTH \
+-Wl,--export=stdin -Wl,--export=stdout -Wl,--export=stderr \
+-Wl,--export=_ZNSt12length_errorD1Ev -Wl,--export=_ZTISt12length_error -Wl,--export=_ZTVSt12length_error"
 dnl Side modules also expect libc; keep full stdlibs in the main module.
   WASM_LINK_ENV="EMCC_FORCE_STDLIBS=1"
-  AC_MSG_NOTICE([wasm dylink: MAIN_MODULE uses EMCC_FORCE_STDLIBS=1 and -Wl,--export=stdin|stdout|stderr])
+  AC_MSG_NOTICE([wasm dylink: MAIN_MODULE stdio + length_error exports, EMCC_FORCE_STDLIBS=1])
 fi
 AC_SUBST(WASM_DYLINK)
 AC_SUBST(WASM_LDFLAGS_MAIN)
