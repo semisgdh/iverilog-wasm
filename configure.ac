@@ -27,6 +27,34 @@ AX_PROG_CC_FOR_BUILD
 AC_PREREQ([2.62])
 m4_version_prereq([2.70], [], [AC_PROG_CC_C99])
 AC_PROG_CXX
+
+dnl When building with emcc, default to wasm dynamic linking (MAIN_MODULE / SIDE_MODULE)
+dnl so ivl/vvp can dlopen .tgt and .vpi side modules in the browser.
+WASM_DYLINK=no
+case "$CC" in
+  *emcc*) WASM_DYLINK=yes ;;
+esac
+AC_ARG_ENABLE([wasm_dylink],
+    [AS_HELP_STRING([--disable-wasm-dylink],
+	[With emcc: do not use -sMAIN_MODULE=2 / -sSIDE_MODULE (for .tgt/.vpi dlopen)])],
+    [AS_CASE([$enableval],
+	[no], [WASM_DYLINK=no],
+	[yes], [WASM_DYLINK=yes])],
+    [])
+if test "$WASM_DYLINK" = "yes"; then
+  case "$CC" in
+    *emcc*) ;;
+    *) AC_MSG_WARN([wasm dylink ignored: CC is not emcc])
+       WASM_DYLINK=no ;;
+  esac
+fi
+WASM_LDFLAGS_MAIN=
+if test "$WASM_DYLINK" = "yes"; then
+  WASM_LDFLAGS_MAIN="-sMAIN_MODULE=2 -sALLOW_MEMORY_GROWTH"
+fi
+AC_SUBST(WASM_DYLINK)
+AC_SUBST(WASM_LDFLAGS_MAIN)
+
 AC_PROG_RANLIB
 AC_CHECK_TOOL(LD, ld, false)
 AC_CHECK_TOOL(AR, ar, false)
@@ -342,6 +370,10 @@ AX_LD_RDYNAMIC
 
 # linker options when building a shared library
 AX_LD_SHAREDLIB_OPTS
+if test "$WASM_DYLINK" = "yes"; then
+	shared="-sSIDE_MODULE"
+	AC_MSG_NOTICE([wasm dylink: shared libraries use -sSIDE_MODULE])
+fi
 
 #######################
 ## test for underscores. The vpi module loader needs to know this

@@ -106,6 +106,7 @@ CFLAGS = @WARNING_FLAGS@ @WARNING_FLAGS_CC@ @CFLAGS@
 CXXFLAGS = @WARNING_FLAGS@ @WARNING_FLAGS_CXX@ @CXXFLAGS@
 PICFLAGS = @PICFLAG@
 LDFLAGS = @rdynamic@ @LDFLAGS@
+WASM_LDFLAGS_MAIN = @WASM_LDFLAGS_MAIN@
 CTARGETFLAGS = @CTARGETFLAGS@
 
 # Source files in the libmisc directory
@@ -230,10 +231,10 @@ ifeq (@WIN32@,yes)
 # generators to access the items exported by ivl.exe. The .def file controls
 # what is visible in the import library.
 ivl@EXEEXT@: $O $(srcdir)/ivl.def
-	$(CXX) $(LDFLAGS) -o ivl@EXEEXT@ -Wl,--out-implib=libivl.a $(srcdir)/ivl.def $O $(dllib) @EXTRALIBS@
+	$(CXX) $(LDFLAGS) $(WASM_LDFLAGS_MAIN) -o ivl@EXEEXT@ -Wl,--out-implib=libivl.a $(srcdir)/ivl.def $O $(dllib) @EXTRALIBS@
 else
 ivl@EXEEXT@: $O
-	$(CXX) $(LDFLAGS) -o ivl@EXEEXT@ $O $(dllib)
+	$(CXX) $(LDFLAGS) $(WASM_LDFLAGS_MAIN) -o ivl@EXEEXT@ $O $(dllib)
 endif
 
 ifeq (@MINGW32@,no)

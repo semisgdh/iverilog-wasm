@@ -1,10 +1,18 @@
 #!/bin/sh
 # Populate wasm-web-bundle/ after an Emscripten build (emmake make).
 # Run from anywhere; uses repository root containing this script.
+#
+# Usage: pack-wasm-bundle.sh [DEST_DIR]
+#   Default DEST_DIR: wasm-web-bundle
+#   Example (dylink build): pack-wasm-bundle.sh wasm-web-bundle_icarus_dynamic
 
 set -e
 REPO=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
-OUT="$REPO/wasm-web-bundle"
+OUT=${1:-"$REPO/wasm-web-bundle"}
+case "$OUT" in
+  /*) ;;
+  *) OUT="$REPO/$OUT" ;;
+esac
 mkdir -p "$OUT/bin" "$OUT/lib/ivl/include"
 
 for pair in \
@@ -34,6 +42,11 @@ for f in "$REPO/vpi"/*.vpi; do
   if test -f "$f"; then cp "$f" "$OUT/lib/ivl/"; fi
 done
 
+# Emscripten may emit companion *.wasm next to some side module names; copy any.
+for f in "$REPO/vpi"/*.wasm "$REPO"/tgt-*/*.wasm; do
+  if test -f "$f"; then cp "$f" "$OUT/lib/ivl/"; fi
+done
+
 cp "$REPO/constants.vams" "$REPO/disciplines.vams" "$OUT/lib/ivl/include/"
 
-echo "Packed $OUT (see wasm-web-bundle/README.txt)."
+echo "Packed $OUT"

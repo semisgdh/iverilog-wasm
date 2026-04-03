@@ -13,4 +13,7 @@ Emscripten 산출물을 "설치 트리" 모양으로 모은 폴더입니다.
 브라우저 WASM에서는 그대로 동작하지 않을 수 있어, 웹에서는 별도 JS에서
 Module/FS를 맞추거나 프로세스 모델을 바꿔야 할 수 있습니다.
 
-재생성: 저장소 루트에서 emmake make 후 이 디렉터리를 다시 채우면 됩니다.
+재생성: 저장소 루트에서 emmake make 후
+  ./scripts/pack-wasm-bundle.sh
+  ./scripts/pack-wasm-bundle.sh wasm-web-bundle_icarus_dynamic
+ (첫 인자로 대상 디렉터리 지정 가능; 브라우저 dlopen용은 icarus_dynamic 쪽 README 참고.)

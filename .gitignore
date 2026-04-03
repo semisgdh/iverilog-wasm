@@ -120,4 +120,6 @@ dep
 *.wasm
 /wasm-web-bundle/bin/
 /wasm-web-bundle/lib/
+/wasm-web-bundle_icarus_dynamic/bin/
+/wasm-web-bundle_icarus_dynamic/lib/
 /vhdlpp/vhdlpp

@@ -60,6 +60,7 @@ CPPFLAGS = $(INCLUDE_PATH) @CPPFLAGS@ @DEFS@ -DICARUS_VPI_CONST=const
 CFLAGS = @WARNING_FLAGS@ @WARNING_FLAGS_CC@ @CFLAGS@
 CXXFLAGS = @WARNING_FLAGS@ @WARNING_FLAGS_CXX@ @CXXFLAGS@
 LDFLAGS = @rdynamic@ @LDFLAGS@
+WASM_LDFLAGS_MAIN = @WASM_LDFLAGS_MAIN@
 LIBS = @LIBS@ @EXTRALIBS@
 
 ifeq (@WIN32@,yes)
@@ -142,7 +143,7 @@ CPPFLAGS+= -fpic
 # add option -Wl,-rpath=`pwd` to the CXX command below.
 
 vvp@EXEEXT@: main.o $(srcdir)/vvp.def libvvp$(suffix).$(SLEXT)
-	$(CXX) $(LDFLAGS) -o vvp@EXEEXT@ main.o -L. $(LDFLAGS) -lvvp$(suffix) $(LIBS)
+	$(CXX) $(LDFLAGS) $(WASM_LDFLAGS_MAIN) -o vvp@EXEEXT@ main.o -L. $(LDFLAGS) -lvvp$(suffix) $(LIBS)
 
 libvvp$(suffix).$(SLEXT): $O
 	$(CXX) -shared $(LDFLAGS) -o libvvp$(suffix).$(SLEXT) $O $(LIBS) $(dllib)
@@ -152,10 +153,10 @@ ifeq (@WIN32@,yes)
 # cocotb to build VPI modules without using our vpi_user.h and libvpi.a.
 # The .def file controls what is exported.
 vvp@EXEEXT@: main.o $O $(srcdir)/vvp.def
-	$(CXX) $(LDFLAGS) -o vvp@EXEEXT@ $(LDFLAGS) $(srcdir)/vvp.def main.o $O $(dllib) $(LIBS)
+	$(CXX) $(LDFLAGS) $(WASM_LDFLAGS_MAIN) -o vvp@EXEEXT@ $(LDFLAGS) $(srcdir)/vvp.def main.o $O $(dllib) $(LIBS)
 else
 vvp@EXEEXT@: $O main.o
-	$(CXX) $(LDFLAGS) -o vvp@EXEEXT@ main.o $O $(LIBS) $(dllib)
+	$(CXX) $(LDFLAGS) $(WASM_LDFLAGS_MAIN) -o vvp@EXEEXT@ main.o $O $(LIBS) $(dllib)
 endif
 endif
 
