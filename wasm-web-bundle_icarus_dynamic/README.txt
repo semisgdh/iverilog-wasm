@@ -17,9 +17,16 @@ dylink 시 SIDE_MODULE(`system.vpi` 등)은 **GOT.func / GOT.mem** 과 **`env` �
 - `EMCC_FORCE_STDLIBS=1`
 - `-sMAIN_MODULE=2 -sALLOW_MEMORY_GROWTH -Wl,--export-all`
 
-검사: `node scripts/check-icarus-dylink-exports.cjs` — `system.vpi`가 메인에서 기대하는 심볼만 검사합니다.
-`system.vpi` **자체 export**(PIC용 GOT 등)는 제외하고, 나머지는 `ivl.wasm` **export** 또는
-`ivl.wasm`이 이미 `env`로 받는 함수(import)면 통과(`exit` 등은 JS가 넣는 경우).
+검사: `node scripts/check-icarus-dylink-exports.cjs` — **기본 모드**(권장)는 `system.vpi`가 메인에서
+진짜로 받아야 하는 심볼만 봅니다. `system.vpi` **자체 export**(PIC용 GOT 슬롯)는 제외하고,
+나머지는 `ivl.wasm` **wasm export** 또는 `ivl.wasm`의 **`env` 함수 import**(`exit`, `__assert_fail`,
+`__cxa_throw` 등 — Emscripten JS가 채움)이면 통과합니다.
+
+**오해 방지:** GOT/env 이름을 전부 `ivl.wasm` export와만 맞추면 약 **72개**가 “없음”으로 나옵니다.
+그중 대부분은 `sys_*_register`, `readmem*`, `sdf*` 등 **같은 `system.vpi`가 이미 export**하는 심볼이고,
+런타임에서 사이드 모듈 안에서 해결됩니다. `exit` 등 3개는 **ivl이 env로 import**하므로 wasm export에
+없어도 정상입니다. 원시 export 테이블만 보고 싶을 때: `node scripts/check-icarus-dylink-exports.cjs --strict …`
+(실패가 예상되며, 끝에 위 설명 요약이 출력됩니다.)
 
 재생성: 저장소 루트에서 `emconfigure`/`emmake make` 하면 **루트 `make all` 끝에서**
 `wasm-web-bundle_icarus_dynamic/` 가 자동으로 갱신됩니다(emcc일 때만).

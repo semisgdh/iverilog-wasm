@@ -14,6 +14,14 @@
  *
  * Usage:
  *   node scripts/check-icarus-dylink-exports.cjs [ivl.wasm [vvp.wasm ...]]
+ *   node scripts/check-icarus-dylink-exports.cjs --strict [ivl.wasm ...]
+ *
+ * Default mode (recommended): symbols that system.vpi also exports (PIC GOT) are not required
+ * on ivl; libc names ivl imports via env (exit, __assert_fail, __cxa_throw, …) count as OK.
+ *
+ * --strict: every GOT.func/mem + env function import name must appear in ivl wasm *exports*.
+ * That fails with ~72 “missing” on a normal dylink build — those are mostly false positives
+ * (see README). Use strict only to compare raw export tables.
  */
 'use strict';
 
@@ -21,9 +29,11 @@ const fs = require('fs');
 const path = require('path');
 
 const repoRoot = path.resolve(__dirname, '..');
+const argv = process.argv.slice(2);
+const strictMode = argv[0] === '--strict';
+const pathArgs = strictMode ? argv.slice(1) : argv;
 const defaultPaths = [path.join(repoRoot, 'ivl.wasm'), path.join(repoRoot, 'vvp', 'vvp.wasm')];
-const wasmPaths =
-  process.argv.length > 2 ? process.argv.slice(2).map((p) => path.resolve(p)) : defaultPaths;
+const wasmPaths = pathArgs.length ? pathArgs.map((p) => path.resolve(p)) : defaultPaths;
 
 const needStdio = ['stdin', 'stdout', 'stderr'];
 const PREVIEW_LIMIT = 40;
@@ -42,12 +52,9 @@ function findSystemVpi(ivlWasmPath) {
   return null;
 }
 
-function hostSymbolsRequiredBySystemVpi(vpiPath) {
+function allGotAndEnvFunctionsFromSystemVpi(vpiPath) {
   const mod = new WebAssembly.Module(fs.readFileSync(vpiPath));
   const imps = WebAssembly.Module.imports(mod);
-  const vpiExports = new Set(
-    WebAssembly.Module.exports(mod).map((e) => e.name),
-  );
   const need = new Set();
   for (const i of imps) {
     if (i.module === 'GOT.func' || i.module === 'GOT.mem') {
@@ -56,7 +63,16 @@ function hostSymbolsRequiredBySystemVpi(vpiPath) {
       need.add(i.name);
     }
   }
-  return [...need].filter((n) => !vpiExports.has(n));
+  return [...need];
+}
+
+function hostSymbolsRequiredBySystemVpi(vpiPath) {
+  const vpiExports = new Set(
+    WebAssembly.Module.exports(
+      new WebAssembly.Module(fs.readFileSync(vpiPath)),
+    ).map((e) => e.name),
+  );
+  return allGotAndEnvFunctionsFromSystemVpi(vpiPath).filter((n) => !vpiExports.has(n));
 }
 
 function envFunctionImports(wasmPath) {
@@ -103,7 +119,9 @@ for (const wasmPath of wasmPaths) {
 
   if (vpiPath) {
     try {
-      requiredFromHost = hostSymbolsRequiredBySystemVpi(vpiPath);
+      requiredFromHost = strictMode
+        ? allGotAndEnvFunctionsFromSystemVpi(vpiPath)
+        : hostSymbolsRequiredBySystemVpi(vpiPath);
       ivlEnvImports = envFunctionImports(wasmPath);
     } catch (e) {
       console.error(`${rel}: could not parse (${vpiPath}): ${e.message}`);
@@ -111,23 +129,52 @@ for (const wasmPath of wasmPaths) {
       continue;
     }
 
-    missingHost = requiredFromHost
-      .filter((n) => !exportNames.has(n) && !ivlEnvImports.has(n))
-      .sort();
+    if (strictMode) {
+      missingHost = requiredFromHost.filter((n) => !exportNames.has(n)).sort();
+      for (const n of missingHost) {
+        console.error(`${rel}: [strict] not in ivl.wasm exports: ${n}`);
+        exitCode = 1;
+      }
+      if (missingHost.length) {
+        const vpiEx = new Set(
+          WebAssembly.Module.exports(
+            new WebAssembly.Module(fs.readFileSync(vpiPath)),
+          ).map((e) => e.name),
+        );
+        const picGot = missingHost.filter((n) => vpiEx.has(n)).length;
+        const envOnly = missingHost.filter((n) => ivlEnvImports.has(n)).length;
+        const preview = missingHost.slice(0, PREVIEW_LIMIT).join(', ');
+        const more =
+          missingHost.length > PREVIEW_LIMIT ? ` … (+${missingHost.length - PREVIEW_LIMIT} more)` : '';
+        console.error(`  (${missingHost.length} in strict mode; first: ${preview}${more})`);
+        console.error(`  system.vpi: ${path.relative(repoRoot, vpiPath) || vpiPath}`);
+        console.error(
+          `  Note: ~${picGot} of these are also exported by system.vpi (PIC GOT — not required on ivl).`,
+        );
+        console.error(
+          `  ~${envOnly} are ivl env imports (e.g. exit) — provided by JS, not wasm exports.`,
+        );
+        console.error('  Re-run without --strict for the dylink-correct check (expect OK).');
+      }
+    } else {
+      missingHost = requiredFromHost
+        .filter((n) => !exportNames.has(n) && !ivlEnvImports.has(n))
+        .sort();
 
-    for (const n of missingHost) {
-      console.error(`${rel}: not exported from ivl.wasm and not an ivl env import: ${n}`);
-      exitCode = 1;
-    }
-    if (missingHost.length) {
-      const preview = missingHost.slice(0, PREVIEW_LIMIT).join(', ');
-      const more =
-        missingHost.length > PREVIEW_LIMIT ? ` … (+${missingHost.length - PREVIEW_LIMIT} more)` : '';
-      console.error(`  (${missingHost.length} unresolved; first: ${preview}${more})`);
-      console.error(`  system.vpi: ${path.relative(repoRoot, vpiPath) || vpiPath}`);
-      console.error(
-        '  Fix: ivl MAIN_MODULE with -Wl,--export-all; if still failing, add -Wl,--export=<sym> or extend JS env.',
-      );
+      for (const n of missingHost) {
+        console.error(`${rel}: not exported from ivl.wasm and not an ivl env import: ${n}`);
+        exitCode = 1;
+      }
+      if (missingHost.length) {
+        const preview = missingHost.slice(0, PREVIEW_LIMIT).join(', ');
+        const more =
+          missingHost.length > PREVIEW_LIMIT ? ` … (+${missingHost.length - PREVIEW_LIMIT} more)` : '';
+        console.error(`  (${missingHost.length} unresolved; first: ${preview}${more})`);
+        console.error(`  system.vpi: ${path.relative(repoRoot, vpiPath) || vpiPath}`);
+        console.error(
+          '  Fix: ivl MAIN_MODULE with -Wl,--export-all; if still failing, add -Wl,--export=<sym> or extend JS env.',
+        );
+      }
     }
   }
 
