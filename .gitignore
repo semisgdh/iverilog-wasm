@@ -115,3 +115,9 @@ dep
 
 # Check output
 /check.vvp
+
+# Emscripten / WebAssembly (keep wasm-web-bundle/*.txt only; run scripts/pack-wasm-bundle.sh)
+*.wasm
+/wasm-web-bundle/bin/
+/wasm-web-bundle/lib/
+/vhdlpp/vhdlpp

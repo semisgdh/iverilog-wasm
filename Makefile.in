@@ -32,6 +32,9 @@ SHELL = /bin/sh
 # The normal configuration leaves suffix empty
 suffix = @install_suffix@
 
+# Set to "yes" when host is *-*-emscripten* (see configure.ac).
+EMSCRIPTEN = @EMSCRIPTEN@
+
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 srcdir = @srcdir@

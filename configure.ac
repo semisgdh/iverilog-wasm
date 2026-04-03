@@ -12,6 +12,15 @@ AC_CONFIG_HEADERS([tgt-vhdl/vhdl_config.h])
 AC_CONFIG_HEADERS([tgt-pcb/pcb_config.h])
 
 AC_CANONICAL_HOST
+
+EMSCRIPTEN=no
+case "${host}" in *-*-emscripten*)
+	EMSCRIPTEN=yes
+	AC_MSG_NOTICE([Emscripten host detected — skipping host readline/termcap probes])
+	;;
+esac
+AC_SUBST(EMSCRIPTEN)
+
 dnl Checks for programs.
 AC_PROG_CC
 AX_PROG_CC_FOR_BUILD
@@ -147,16 +156,20 @@ AC_CHECK_SIZEOF(unsigned)
 AC_CHECK_SIZEOF(void *)
 
 # vvp uses these...
-AC_CHECK_LIB(termcap, tputs)
-AC_CHECK_LIB(readline, readline)
-AC_CHECK_LIB(readline, add_history, NEED_LIBHISTORY=no, NEED_LIBHISTORY=yes)
-if test "$NEED_LIBHISTORY" = "yes"; then
-AC_CHECK_LIB(history, add_history)
+if test "$EMSCRIPTEN" = "yes"; then
+	AC_CHECK_HEADERS(sys/resource.h)
 else
-# libreadline includes libhistory functions
-AC_DEFINE(HAVE_LIBHISTORY, 1)
+	AC_CHECK_LIB(termcap, tputs)
+	AC_CHECK_LIB(readline, readline)
+	AC_CHECK_LIB(readline, add_history, NEED_LIBHISTORY=no, NEED_LIBHISTORY=yes)
+	if test "$NEED_LIBHISTORY" = "yes"; then
+	AC_CHECK_LIB(history, add_history)
+	else
+	# libreadline includes libhistory functions
+	AC_DEFINE(HAVE_LIBHISTORY, 1)
+	fi
+	AC_CHECK_HEADERS(readline/readline.h readline/history.h sys/resource.h)
 fi
-AC_CHECK_HEADERS(readline/readline.h readline/history.h sys/resource.h)
 case "${host}" in *linux*) AC_DEFINE([LINUX], [1], [Host operating system is Linux.]) ;; esac
 
 # vpi uses these

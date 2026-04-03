@@ -110,6 +110,11 @@ AC_DEFUN([AX_LD_SHAREDLIB_OPTS],
 [AC_MSG_CHECKING([for shared library link flag])
 shared=-shared
 case "${host}" in
+     *-*-emscripten*)
+	dnl emcc accepts -shared for loadable modules (SIDE_MODULE-style .so)
+	shared=-shared
+	;;
+
      *-*-cygwin*)
         shared="-shared -Wl,--enable-auto-image-base"
         ;;
@@ -182,6 +187,11 @@ AC_DEFUN([AX_LD_RDYNAMIC],
 [AC_MSG_CHECKING([for -rdynamic compiler flag])
 rdynamic=-rdynamic
 case "${host}" in
+
+    *-*-emscripten*)
+	dnl emcc has no GNU -rdynamic; VPI is loaded via dlopen / SIDE_MODULE instead
+	rdynamic=
+	;;
 
     *-*-netbsd*)
         rdynamic="-Wl,--export-dynamic"
