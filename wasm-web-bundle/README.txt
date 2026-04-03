@@ -20,5 +20,5 @@ Module/FS를 맞추거나 프로세스 모델을 바꿔야 할 수 있습니다.
 emcc로 configure 했을 때는 루트 `make all` 마지막에 `wasm-web-bundle_icarus_dynamic/` 가
 자동 갱신되므로, dylink 번들은 별도 pack 없이도 최신을 유지할 수 있습니다.
 
-검사: `node scripts/check-icarus-dylink-exports.cjs ivl.wasm vvp/vvp.wasm` — dylink용 MAIN_MODULE에
-stdin/stdout/stderr export가 있는지 확인합니다.
+검사: `node scripts/check-icarus-dylink-exports.cjs ivl.wasm vvp/vvp.wasm` — dylink용 MAIN_MODULE이
+`system.vpi`가 요구하는 GOT/env 심볼을 export하는지 확인합니다(보통 `-Wl,--export-all` 필요).
