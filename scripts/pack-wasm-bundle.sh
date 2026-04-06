@@ -49,4 +49,30 @@ done
 
 cp "$REPO/constants.vams" "$REPO/disciplines.vams" "$OUT/lib/ivl/include/"
 
+# GPL: pin exact corresponding source revision inside the bundle (copy-paste friendly).
+REV_FILE="$OUT/SOURCE_REVISION.txt"
+if test -d "$REPO/.git" && command -v git >/dev/null 2>&1; then
+  (
+    cd "$REPO" || exit 1
+    echo "REPO_URL=https://github.com/semisgdh/iverilog-wasm"
+    echo "BRANCH=wasm-port"
+    echo "GIT_COMMIT=$(git rev-parse HEAD)"
+    echo "GIT_COMMIT_SHORT=$(git rev-parse --short HEAD)"
+    echo "GIT_COMMIT_DATE=$(git log -1 --format=%ci HEAD)"
+    br=$(git rev-parse --abbrev-ref HEAD 2>/dev/null) && echo "GIT_CHECKOUT_BRANCH=$br"
+    tag=$(git describe --tags --exact-match HEAD 2>/dev/null) && echo "GIT_TAG_EXACT=$tag"
+  ) >"$REV_FILE"
+else
+  {
+    echo "REPO_URL=https://github.com/semisgdh/iverilog-wasm"
+    echo "BRANCH=wasm-port"
+    echo "GIT_COMMIT=unknown"
+    echo "# Pack was run without a Git checkout or without git(1); record SHA manually for GPL corresponding source."
+  } >"$REV_FILE"
+fi
+
+if test -f "$REPO/docs/CORRESPONDING_SOURCE.md"; then
+  cp "$REPO/docs/CORRESPONDING_SOURCE.md" "$OUT/CORRESPONDING_SOURCE.md"
+fi
+
 echo "Packed $OUT"

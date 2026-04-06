@@ -47,6 +47,17 @@ tools.
 
 > For instructions on how to run Icarus Verilog, see the `iverilog` man page.
 
+### Emscripten / WASM (this fork, `wasm-port`)
+
+This branch adds a WebAssembly (Emscripten) build path and a pack script for a deployable tree under `wasm-web-bundle_icarus_dynamic/`. Icarus remains **GPL-2.0**; if you redistribute WASM or wrap it as a service, treat the combination like other GPL-covered binaries and keep **corresponding source** pointers accurate.
+
+- **Upstream Icarus:** https://github.com/steveicarus/iverilog  
+- **WASM fork (this repo):** https://github.com/semisgdh/iverilog-wasm — branch `wasm-port`  
+- **Human-readable corresponding-source note:** [docs/CORRESPONDING_SOURCE.md](docs/CORRESPONDING_SOURCE.md)  
+- After `./scripts/pack-wasm-bundle.sh wasm-web-bundle_icarus_dynamic`, the bundle also contains **`SOURCE_REVISION.txt`** (exact Git SHA used to build, and **`GIT_TAG_EXACT`** when HEAD matches a tag) and a copy of **`CORRESPONDING_SOURCE.md`**. Pin your public notices to that SHA or a **release tag** (e.g. `wasm-web-bundle-1.0.0` on GitHub), not only to the branch name.
+
+Product-specific GPL interpretation is for qualified counsel, not this README.
+
 
 ## Building/Installing Icarus Verilog from Source
 

@@ -1,5 +1,25 @@
 wasm-web-bundle_icarus_dynamic
 ================================
+
+GPL-2.0 / 대응 소스 (요약)
+---------------------------
+이 디렉터리의 WASM·JS 래퍼 등은 **Icarus Verilog**(GPL-2.0) 기반 **semisgdh/iverilog-wasm**
+`wasm-port` 브랜치에서 빌드됩니다.
+
+- **Upstream:** https://github.com/steveicarus/iverilog  
+- **이 포크(WASM 빌드):** https://github.com/semisgdh/iverilog-wasm (브랜치 `wasm-port`)
+
+배포·사이트 고지에는 **브랜치 이름만** 말고, 가능하면 **`SOURCE_REVISION.txt`의 전체 커밋 SHA**(또는 그 SHA를 가리키는 **태그**)를 적는 것을 권장합니다.  
+패킹 후 이 폴더에 생성되는 파일:
+
+- `CORRESPONDING_SOURCE.md` — 영문 대응 소스 안내(전체, 복사해 open-source 페이지에 사용 가능)  
+- `SOURCE_REVISION.txt` — 이 번들을 만든 Git 커밋·날짜
+
+상세·재현 명령은 레포의 `docs/CORRESPONDING_SOURCE.md` 와 동일 내용이 `CORRESPONDING_SOURCE.md`에 복사됩니다.  
+법적 확정이 필요하면 변호사 검토를 권장합니다.
+
+---
+
 Emscripten **dynamic linking** 빌드(`emcc` + 기본 `--enable-wasm-dylink`) 산출물을
 `scripts/pack-wasm-bundle.sh wasm-web-bundle_icarus_dynamic` 로 모은 트리입니다.
 

@@ -1,6 +1,9 @@
 # wasm-web-bundle_icarus_dynamic/ (relative paths)
 FILE_MANIFEST.txt
 README.txt
+# Written by scripts/pack-wasm-bundle.sh (GPL corresponding source)
+CORRESPONDING_SOURCE.md
+SOURCE_REVISION.txt
 bin/iverilog
 bin/iverilog.wasm
 bin/ivl
