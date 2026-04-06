@@ -1,53 +1,50 @@
 wasm-web-bundle_icarus_dynamic
 ================================
 
-GPL-2.0 / 대응 소스 (요약)
----------------------------
-이 디렉터리의 WASM·JS 래퍼 등은 **Icarus Verilog**(GPL-2.0) 기반 **semisgdh/iverilog-wasm**
-`wasm-port` 브랜치에서 빌드됩니다.
+GPL-2.0 / corresponding source (short)
+----------------------------------------
+WASM and JS wrappers here are built from **Icarus Verilog** (GPL-2.0) on the **semisgdh/iverilog-wasm**
+`wasm-port` branch.
 
-- **Upstream:** https://github.com/steveicarus/iverilog  
-- **이 포크(WASM 빌드):** https://github.com/semisgdh/iverilog-wasm (브랜치 `wasm-port`)
+- **Upstream:** https://github.com/steveicarus/iverilog
+- **This fork (WASM build):** https://github.com/semisgdh/iverilog-wasm (branch `wasm-port`)
 
-배포·사이트 고지에는 **브랜치 이름만** 말고, 가능하면 **`SOURCE_REVISION.txt`의 전체 커밋 SHA**(또는 그 SHA를 가리키는 **태그**)를 적는 것을 권장합니다.  
-패킹 후 이 폴더에 생성되는 파일:
+For public notices, prefer the full commit SHA from **`SOURCE_REVISION.txt`** (or a **release tag** that
+points to that commit), not the branch name alone. After packing, this folder also has:
 
-- `CORRESPONDING_SOURCE.md` — 영문 대응 소스 안내(전체, 복사해 open-source 페이지에 사용 가능)  
-- `SOURCE_REVISION.txt` — 이 번들을 만든 Git 커밋·날짜
+- **`CORRESPONDING_SOURCE.md`** — full English corresponding-source note (same as `docs/CORRESPONDING_SOURCE.md`)
+- **`SOURCE_REVISION.txt`** — Git commit and date used for this bundle
 
-상세·재현 명령은 레포의 `docs/CORRESPONDING_SOURCE.md` 와 동일 내용이 `CORRESPONDING_SOURCE.md`에 복사됩니다.  
-법적 확정이 필요하면 변호사 검토를 권장합니다.
+Product-specific compliance: consult counsel if needed.
 
 ---
 
-Emscripten **dynamic linking** 빌드(`emcc` + 기본 `--enable-wasm-dylink`) 산출물을
-`scripts/pack-wasm-bundle.sh wasm-web-bundle_icarus_dynamic` 로 모은 트리입니다.
+Emscripten **dynamic linking** output (`emcc` with `--enable-wasm-dylink`), gathered with
+`scripts/pack-wasm-bundle.sh wasm-web-bundle_icarus_dynamic`.
 
-- `bin/ivl`, `bin/vvp` 등은 **`-sMAIN_MODULE=2`** 로 링크되어 브라우저에서 `dlopen`으로
-  `lib/ivl/*.tgt`, `lib/ivl/*.vpi` **SIDE_MODULE** 을 로드할 수 있게 맞춘 버전입니다.
-- 예전 `-shared`만 쓰던 산출물과 바이너리가 다릅니다. wasm-tools 쪽 번들은 이 폴더로 교체해야 합니다.
+- `bin/ivl`, `bin/vvp`, etc. are linked with **`-sMAIN_MODULE=2`** so the browser can `dlopen`
+  `lib/ivl/*.tgt` and `lib/ivl/*.vpi` **SIDE_MODULE** files.
+- Binaries differ from older `-shared`-only builds; replace wasm-tools bundles with this tree when switching.
 
-dylink 시 SIDE_MODULE(`system.vpi` 등)은 **GOT.func / GOT.mem** 과 **`env` 함수 import**로
-메인 모듈 심볼을 찾습니다. 링크에 libc·ivl이 있어도 **wasm export 테이블에 이름이 없으면**
-`undefined symbol` 이 납니다. `stderr`만이 아니라 `__cxa_atexit`, `vpi_*`, `pthread_*` 등
-수백 개가 이어질 수 있어, 개별 `-Wl,--export=` 보다 **`-Wl,--export-all`** 이 현실적입니다.
+With dylink, SIDE_MODULEs (`system.vpi`, etc.) resolve main-module symbols via **GOT.func / GOT.mem**
+and **`env` function imports**. If a name is missing from the wasm export table you get **`undefined symbol`**
+(not only `stderr`; `__cxa_atexit`, `vpi_*`, `pthread_*`, etc.). Per-symbol `-Wl,--export=` is impractical;
+**`-Wl,--export-all`** on the main module is the practical approach.
 
-이 저장소는 `ivl`/`vvp` MAIN_MODULE 링크에 다음이 포함됩니다.
+This repo links `ivl` / `vvp` MAIN_MODULE with:
 
 - `EMCC_FORCE_STDLIBS=1`
 - `-sMAIN_MODULE=2 -sALLOW_MEMORY_GROWTH -Wl,--export-all`
 
-검사: `node scripts/check-icarus-dylink-exports.cjs` — **기본 모드**(권장)는 `system.vpi`가 메인에서
-진짜로 받아야 하는 심볼만 봅니다. `system.vpi` **자체 export**(PIC용 GOT 슬롯)는 제외하고,
-나머지는 `ivl.wasm` **wasm export** 또는 `ivl.wasm`의 **`env` 함수 import**(`exit`, `__assert_fail`,
-`__cxa_throw` 등 — Emscripten JS가 채움)이면 통과합니다.
+Check: `node scripts/check-icarus-dylink-exports.cjs` — default mode checks symbols `system.vpi` truly
+needs from the main (excluding its own PIC/GOT exports). Missing names may be satisfied by **`ivl.wasm` wasm
+exports** or **`env` imports** on `ivl.wasm` (`exit`, `__assert_fail`, `__cxa_throw`, etc., filled by
+Emscripten JS).
 
-**오해 방지:** GOT/env 이름을 전부 `ivl.wasm` export와만 맞추면 약 **72개**가 “없음”으로 나옵니다.
-그중 대부분은 `sys_*_register`, `readmem*`, `sdf*` 등 **같은 `system.vpi`가 이미 export**하는 심볼이고,
-런타임에서 사이드 모듈 안에서 해결됩니다. `exit` 등 3개는 **ivl이 env로 import**하므로 wasm export에
-없어도 정상입니다. 원시 export 테이블만 보고 싶을 때: `node scripts/check-icarus-dylink-exports.cjs --strict …`
-(실패가 예상되며, 끝에 위 설명 요약이 출력됩니다.)
+**Note:** Matching every GOT/env name only to `ivl.wasm` exports reports ~**72** “missing”; most are
+already exported from the same `system.vpi` or resolved inside side modules. A few (e.g. `exit`) are
+**imported via `env`** and need not appear as wasm exports. For a raw export-table view:
+`node scripts/check-icarus-dylink-exports.cjs --strict …` (expected to fail; summary prints at the end).
 
-재생성: 저장소 루트에서 `emconfigure`/`emmake make` 하면 **루트 `make all` 끝에서**
-`wasm-web-bundle_icarus_dynamic/` 가 자동으로 갱신됩니다(emcc일 때만).
-수동으로만 할 때는 `scripts/pack-wasm-bundle.sh wasm-web-bundle_icarus_dynamic` 입니다.
+Regenerate: from repo root, `emconfigure` / `emmake make` — at end of **`make all`**, this directory
+updates automatically when using `emcc`. To pack only: `scripts/pack-wasm-bundle.sh wasm-web-bundle_icarus_dynamic`.
