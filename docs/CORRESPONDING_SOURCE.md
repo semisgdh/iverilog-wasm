@@ -70,6 +70,21 @@ Optional export check (requires Node.js):
 node scripts/check-icarus-dylink-exports.cjs wasm-web-bundle_icarus_dynamic/bin/ivl.wasm wasm-web-bundle_icarus_dynamic/bin/vvp.wasm
 ```
 
+## Smaller bundle (out-of-tree, compile `-Os -g0`, link `-O2`, **dylink kept**)
+
+For a **deploy tree** with the **same** wasm dylink model as `wasm-web-bundle_icarus_dynamic/`
+(keep `dlopen` of `.vpi` / `.tgt`), build **out of tree** and **do not** pass `--disable-wasm-dylink`:
+
+```bash
+./scripts/build-icarus-wasm-static-oz.sh
+```
+
+This uses compile `-Os -g0` and link `-O2` (no `-flto`—`-O2 -flto` can crash LLVM on e.g. `PExpr.cc` on some toolchains, not only `-Oz -flto`). Link avoids `-Os`, which can strip dylink re-exports. It sets
+`BUILD_TYPE=wasm-web-compact-dylink` in `SOURCE_REVISION.txt`.
+
+**Old mistake:** using `--disable-wasm-dylink` for size broke browsers with
+`dynamic linking not enabled` when loading `system.vpi` / `vvp.tgt`. The script above leaves dylink on.
+
 ## Copying this file
 
 Maintainers: `CORRESPONDING_SOURCE.md` lives in-repo as `docs/CORRESPONDING_SOURCE.md` and is copied into each packed bundle by `pack-wasm-bundle.sh` so a **folder-only** distribution (e.g. `wasm-web-bundle_icarus_dynamic` without the rest of the repo) still carries source-attribution text alongside the binaries.

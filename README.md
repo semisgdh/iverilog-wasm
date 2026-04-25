@@ -49,12 +49,12 @@ tools.
 
 ### Emscripten / WASM (this fork, `wasm-port`)
 
-This branch adds a WebAssembly (Emscripten) build path and a pack script for a deployable tree under `wasm-web-bundle_icarus_dynamic/`. Icarus remains **GPL-2.0**; if you redistribute WASM or wrap it as a service, treat the combination like other GPL-covered binaries and keep **corresponding source** pointers accurate.
+This branch adds a WebAssembly (Emscripten) build path and a pack script for a deployable tree under `wasm-web-bundle_icarus_dynamic/` (browser **dylink** / `MAIN_MODULE=2` layout). For a **smaller `.wasm` footprint** with the **same dylink / `dlopen` behavior**, use the out-of-tree build that outputs `wasm-web-bundle_icarus_static/` — `scripts/build-icarus-wasm-static-oz.sh` (out-of-tree compile `-Os -g0`, link `-O2`, no `-flto`, **without** `--disable-wasm-dylink`). See [docs/CORRESPONDING_SOURCE.md](docs/CORRESPONDING_SOURCE.md) (“Smaller bundle”) and `wasm-web-bundle_icarus_static/README.txt`. Icarus remains **GPL-2.0**; if you redistribute WASM or wrap it as a service, treat the combination like other GPL-covered binaries and keep **corresponding source** pointers accurate.
 
 - **Upstream Icarus:** https://github.com/steveicarus/iverilog  
 - **WASM fork (this repo):** https://github.com/semisgdh/iverilog-wasm — branch `wasm-port`  
 - **Human-readable corresponding-source note:** [docs/CORRESPONDING_SOURCE.md](docs/CORRESPONDING_SOURCE.md)  
-- After `./scripts/pack-wasm-bundle.sh wasm-web-bundle_icarus_dynamic`, the bundle also contains **`SOURCE_REVISION.txt`** (exact Git SHA used to build, and **`GIT_TAG_EXACT`** when HEAD matches a tag) and a copy of **`CORRESPONDING_SOURCE.md`**. Pin your public notices to that SHA or a **release tag** (e.g. `wasm-web-bundle-1.0.0` on GitHub), not only to the branch name.
+- After `./scripts/pack-wasm-bundle.sh …`, the bundle also contains **`SOURCE_REVISION.txt`** (exact Git SHA, optional **`GIT_TAG_EXACT`**, and bundle name) and a copy of **`CORRESPONDING_SOURCE.md`**. Pin your public notices to that SHA or a **release tag** (e.g. `wasm-web-bundle-1.0.0` on GitHub), not only to the branch name.
 
 Product-specific GPL interpretation is for qualified counsel, not this README.
 

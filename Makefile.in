@@ -37,7 +37,8 @@ EMSCRIPTEN = @EMSCRIPTEN@
 # After "make all", run pack-wasm-bundle.sh when CC is emcc (see configure.ac).
 PACK_WASM_ICARUS_DYNAMIC = @PACK_WASM_ICARUS_DYNAMIC@
 ifeq ($(PACK_WASM_ICARUS_DYNAMIC),yes)
-WASM_ICARUS_PACK = @$(SHELL) $(srcdir)/scripts/pack-wasm-bundle.sh wasm-web-bundle_icarus_dynamic
+# CURDIR: copy from this build tree (in-tree or out-of-tree)
+WASM_ICARUS_PACK = @$(SHELL) $(srcdir)/scripts/pack-wasm-bundle.sh wasm-web-bundle_icarus_dynamic "$(CURDIR)"
 else
 WASM_ICARUS_PACK = @:
 endif
