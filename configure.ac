@@ -53,14 +53,27 @@ WASM_LINK_ENV=
 if test "$WASM_DYLINK" = "yes"; then
 dnl MAIN_MODULE must export symbols side modules import via GOT.* and env (functions).
 dnl Per-symbol --export lists do not scale (system.vpi alone pulls ~100+ GOT names + libc/vpi_*).
-  WASM_LDFLAGS_MAIN="-sMAIN_MODULE=2 -sALLOW_MEMORY_GROWTH -Wl,--export-all"
+dnl Emscripten PIC libc++ pulls libwebgpu; wgpu* symbols are implemented in JS (library_webgpu.js).
+dnl Without -sUSE_WEBGPU=1 the link fails with undefined wgpu* when using MAIN_MODULE.
+dnl MODULARIZE: FS + callMain on the module (js/app.js uses ivl.FS / ivl.callMain and vvp.*).
+  WASM_LDFLAGS_MAIN="-sMAIN_MODULE=2 -sALLOW_MEMORY_GROWTH -Wl,--export-all -sUSE_WEBGPU=1 -sEXPORTED_RUNTIME_METHODS=FS,callMain"
 dnl Side modules also expect libc; keep full stdlibs in the main module.
   WASM_LINK_ENV="EMCC_FORCE_STDLIBS=1"
-  AC_MSG_NOTICE([wasm dylink: MAIN_MODULE -Wl,--export-all, EMCC_FORCE_STDLIBS=1])
+  AC_MSG_NOTICE([wasm dylink: MAIN_MODULE + USE_WEBGPU + EXPORTED_RUNTIME_METHODS=FS,callMain])
 fi
 AC_SUBST(WASM_DYLINK)
 AC_SUBST(WASM_LDFLAGS_MAIN)
 AC_SUBST(WASM_LINK_ENV)
+
+dnl ivlpp: MODULARIZE for browser (createIvlppModule). emconfigure often leaves host as *-linux-gnu,
+dnl so EMSCRIPTEN above stays no even though CC is emcc — key off CC like WASM_DYLINK.
+IVLP_EMSCRIPTEN_LDFLAGS=
+case "$CC" in
+  *emcc*)
+	IVLP_EMSCRIPTEN_LDFLAGS="-sMODULARIZE=1 -sEXPORT_NAME=createIvlppModule -sENVIRONMENT=web -sEXPORTED_RUNTIME_METHODS=FS,callMain"
+	;;
+esac
+AC_SUBST(IVLP_EMSCRIPTEN_LDFLAGS)
 
 dnl After emmake make all, refresh wasm-web-bundle_icarus_dynamic/ (copy bin/*.wasm, lib/ivl, …).
 PACK_WASM_ICARUS_DYNAMIC=no
@@ -387,6 +400,11 @@ AX_LD_SHAREDLIB_OPTS
 if test "$WASM_DYLINK" = "yes"; then
 	shared="-sSIDE_MODULE"
 	AC_MSG_NOTICE([wasm dylink: shared libraries use -sSIDE_MODULE])
+	# MAIN_MODULE=2 uses wasm-ld -pie; every .o must be PIC.
+	CFLAGS="-fPIC $CFLAGS"
+	CXXFLAGS="-fPIC $CXXFLAGS"
+	PICFLAG=-fPIC
+	AC_MSG_NOTICE([wasm dylink: forcing -fPIC for CFLAGS/CXXFLAGS/PICFLAG])
 fi
 
 #######################

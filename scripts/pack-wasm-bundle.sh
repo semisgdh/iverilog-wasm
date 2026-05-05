@@ -15,21 +15,35 @@ case "$OUT" in
 esac
 mkdir -p "$OUT/bin" "$OUT/lib/ivl/include"
 
-for pair in \
+# Emscripten often emits <name>.js + <name>.wasm; some builds emit bare <name> as JS glue.
+copy_emcc_tool() {
+  relpath="$1"
+  bn="${relpath##*/}"
+  case "$relpath" in
+    */*) dir="${relpath%/*}" ;;
+    *) dir="." ;;
+  esac
+  base="$REPO/$dir/$bn"
+  if test -f "$base.js" && test -f "$base.wasm"; then
+    cp "$base.js" "$OUT/bin/$bn.js"
+    cp "$base.wasm" "$OUT/bin/$bn.wasm"
+  elif test -f "$base" && test -f "$base.wasm"; then
+    cp "$base" "$OUT/bin/$bn"
+    cp "$base.wasm" "$OUT/bin/$bn.wasm"
+  else
+    echo "Missing $base.js or $base (plus $base.wasm) — run emmake make from $REPO first." >&2
+    exit 1
+  fi
+}
+
+for relpath in \
   "driver/iverilog" \
   "ivl" \
   "ivlpp/ivlpp" \
   "vvp/vvp" \
   "vhdlpp/vhdlpp"
 do
-  base="$REPO/$pair"
-  if test ! -f "$base" || test ! -f "$base.wasm"; then
-    echo "Missing $base or $base.wasm — run emmake make from $REPO first." >&2
-    exit 1
-  fi
-  bn=$(basename "$pair")
-  cp "$base" "$OUT/bin/$bn"
-  cp "$base.wasm" "$OUT/bin/$bn.wasm"
+  copy_emcc_tool "$relpath"
 done
 
 for d in tgt-null tgt-stub tgt-vvp tgt-vhdl tgt-vlog95 tgt-pcb tgt-blif tgt-sizer; do

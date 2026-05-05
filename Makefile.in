@@ -267,7 +267,7 @@ version.exe: $(srcdir)/version.c $(srcdir)/version_base.h version_tag.h
 	$(BUILDCC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -o version.exe -I. -I$(srcdir) $(srcdir)/version.c
 
 %.o: %.cc config.h | dep
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) @DEPENDENCY_FLAG@ -c $< -o $*.o
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(PICFLAGS) @DEPENDENCY_FLAG@ -c $< -o $*.o
 	mv $*.d dep/$*.d
 
 # Here are some explicit dependencies needed to get things going.

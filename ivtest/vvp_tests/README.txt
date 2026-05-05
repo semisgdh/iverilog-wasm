@@ -1,6 +1,6 @@
 
-This directory contains configurations for thet tests that test the iverilog
-compiler with the vvp simulation engine. Eash test file is actually a JSON
+This directory contains configurations for the tests that exercise the iverilog
+compiler with the vvp simulation engine. Each test file is actually a JSON
 file that calls out the test type, names the source file, the gold file, any
 command argument flags.
 

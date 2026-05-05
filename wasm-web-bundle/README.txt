@@ -1,24 +1,26 @@
 wasm-web-bundle
 ===============
-Emscripten 산출물을 "설치 트리" 모양으로 모은 폴더입니다.
+Folder layout that collects Emscripten output in an “install tree” shape.
 
-  bin/          iverilog, ivl, ivlpp, vvp, vhdlpp (각각 .wasm 짝)
-  lib/ivl/      타깃 *.tgt, *.conf, 시스템 *.vpi
+  bin/              iverilog, ivl, ivlpp, vvp, vhdlpp (each with a matching .wasm)
+  lib/ivl/          targets *.tgt, *.conf, system *.vpi
   lib/ivl/include/  constants.vams, disciplines.vams
 
-로컬에서 번들 루트를 prefix처럼 쓰려면 예:
-  bin/iverilog -Bbin -o out.vvp ...   (또는 PATH에 bin 넣고 -B<절대경로>/bin)
+Example of using the bundle root locally like a prefix:
+  bin/iverilog -Bbin -o out.vvp ...   (or put bin on PATH and use -B<absolute>/bin)
 
-주의: 호스트 iverilog는 fork/exec·system()으로 하위 도구를 띄웁니다.
-브라우저 WASM에서는 그대로 동작하지 않을 수 있어, 웹에서는 별도 JS에서
-Module/FS를 맞추거나 프로세스 모델을 바꿔야 할 수 있습니다.
+Note: The host `iverilog` driver spawns child tools via fork/exec and system().
+That model does not map directly to browser Wasm; on the web you typically wire up
+Module/FS in JS or adjust the process model.
 
-재생성: 저장소 루트에서 emmake make 후
+Regenerate: After `emmake make` at the repo root:
   ./scripts/pack-wasm-bundle.sh
   ./scripts/pack-wasm-bundle.sh wasm-web-bundle_icarus_dynamic
- (첫 인자로 대상 디렉터리 지정 가능; 브라우저 dlopen용은 icarus_dynamic 쪽 README 참고.)
-emcc로 configure 했을 때는 루트 `make all` 마지막에 `wasm-web-bundle_icarus_dynamic/` 가
-자동 갱신되므로, dylink 번들은 별도 pack 없이도 최신을 유지할 수 있습니다.
+(You can pass the target directory as the first argument; for the browser `dlopen`
+bundle see the README under `wasm-web-bundle_icarus_dynamic/`.)
 
-검사: `node scripts/check-icarus-dylink-exports.cjs ivl.wasm vvp/vvp.wasm` — dylink용 MAIN_MODULE이
-`system.vpi`가 요구하는 GOT/env 심볼을 export하는지 확인합니다(보통 `-Wl,--export-all` 필요).
+When configured with emcc, root **`make all`** refreshes `wasm-web-bundle_icarus_dynamic/`
+at the end, so the dylink bundle can stay up to date without a separate pack step.
+
+Check: `node scripts/check-icarus-dylink-exports.cjs ivl.wasm vvp/vvp.wasm` — verifies that
+dylink MAIN_MODULEs export the GOT/env symbols `system.vpi` needs (usually requires `-Wl,--export-all`).

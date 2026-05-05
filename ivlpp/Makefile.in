@@ -46,6 +46,7 @@ endif
 CPPFLAGS = $(INCLUDE_PATH) @CPPFLAGS@ @DEFS@
 CFLAGS = @WARNING_FLAGS@ @WARNING_FLAGS_CC@ @CFLAGS@
 LDFLAGS = @LDFLAGS@
+IVLP_EMSCRIPTEN_LDFLAGS = @IVLP_EMSCRIPTEN_LDFLAGS@
 
 O = main.o lexor.o
 
@@ -70,7 +71,7 @@ Makefile: $(srcdir)/Makefile.in ../config.status
 	cd ..; ./config.status --file=ivlpp/$@
 
 ivlpp@EXEEXT@: $O
-	$(CC) $(LDFLAGS) $O -o ivlpp@EXEEXT@ @EXTRALIBS@
+	$(CC) $(LDFLAGS) $(IVLP_EMSCRIPTEN_LDFLAGS) $O -o ivlpp@EXEEXT@ @EXTRALIBS@
 
 lexor.c: $(srcdir)/lexor.lex
 	$(LEX) -t $< > $@

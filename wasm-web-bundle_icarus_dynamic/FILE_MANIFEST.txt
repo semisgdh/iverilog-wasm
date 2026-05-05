@@ -5,7 +5,7 @@ bin/iverilog
 bin/iverilog.wasm
 bin/ivl
 bin/ivl.wasm
-bin/ivlpp
+bin/ivlpp.js
 bin/ivlpp.wasm
 bin/vhdlpp
 bin/vhdlpp.wasm

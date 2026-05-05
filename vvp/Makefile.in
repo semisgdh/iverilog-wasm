@@ -59,6 +59,7 @@ endif
 CPPFLAGS = $(INCLUDE_PATH) @CPPFLAGS@ @DEFS@ -DICARUS_VPI_CONST=const
 CFLAGS = @WARNING_FLAGS@ @WARNING_FLAGS_CC@ @CFLAGS@
 CXXFLAGS = @WARNING_FLAGS@ @WARNING_FLAGS_CXX@ @CXXFLAGS@
+PICFLAGS = @PICFLAG@
 LDFLAGS = @rdynamic@ @LDFLAGS@
 WASM_LDFLAGS_MAIN = @WASM_LDFLAGS_MAIN@
 WASM_LINK_ENV = @WASM_LINK_ENV@
@@ -144,7 +145,7 @@ CPPFLAGS+= -fpic
 # add option -Wl,-rpath=`pwd` to the CXX command below.
 
 vvp@EXEEXT@: main.o $(srcdir)/vvp.def libvvp$(suffix).$(SLEXT)
-	$(WASM_LINK_ENV) $(CXX) $(LDFLAGS) $(WASM_LDFLAGS_MAIN) -o vvp@EXEEXT@ main.o -L. $(LDFLAGS) -lvvp$(suffix) $(LIBS)
+	$(WASM_LINK_ENV) $(CXX) $(LDFLAGS) $(WASM_LDFLAGS_MAIN) -sMODULARIZE=1 -sEXPORT_NAME=createVvpModule -sENVIRONMENT=web -o vvp@EXEEXT@ main.o -L. $(LDFLAGS) -lvvp$(suffix) $(LIBS)
 
 libvvp$(suffix).$(SLEXT): $O
 	$(CXX) -shared $(LDFLAGS) -o libvvp$(suffix).$(SLEXT) $O $(LIBS) $(dllib)
@@ -154,19 +155,19 @@ ifeq (@WIN32@,yes)
 # cocotb to build VPI modules without using our vpi_user.h and libvpi.a.
 # The .def file controls what is exported.
 vvp@EXEEXT@: main.o $O $(srcdir)/vvp.def
-	$(WASM_LINK_ENV) $(CXX) $(LDFLAGS) $(WASM_LDFLAGS_MAIN) -o vvp@EXEEXT@ $(LDFLAGS) $(srcdir)/vvp.def main.o $O $(dllib) $(LIBS)
+	$(WASM_LINK_ENV) $(CXX) $(LDFLAGS) $(WASM_LDFLAGS_MAIN) -sMODULARIZE=1 -sEXPORT_NAME=createVvpModule -sENVIRONMENT=web -o vvp@EXEEXT@ $(LDFLAGS) $(srcdir)/vvp.def main.o $O $(dllib) $(LIBS)
 else
 vvp@EXEEXT@: $O main.o
-	$(WASM_LINK_ENV) $(CXX) $(LDFLAGS) $(WASM_LDFLAGS_MAIN) -o vvp@EXEEXT@ main.o $O $(LIBS) $(dllib)
+	$(WASM_LINK_ENV) $(CXX) $(LDFLAGS) $(WASM_LDFLAGS_MAIN) -sMODULARIZE=1 -sEXPORT_NAME=createVvpModule -sENVIRONMENT=web -o vvp@EXEEXT@ main.o $O $(LIBS) $(dllib)
 endif
 endif
 
 %.o: %.cc config.h | dep
-	$(CXX) $(CPPFLAGS) -DIVL_SUFFIX='"$(suffix)"' $(MDIR1) $(MDIR2) $(CXXFLAGS) @DEPENDENCY_FLAG@ -c $< -o $*.o
+	$(CXX) $(CPPFLAGS) -DIVL_SUFFIX='"$(suffix)"' $(MDIR1) $(MDIR2) $(CXXFLAGS) $(PICFLAGS) @DEPENDENCY_FLAG@ -c $< -o $*.o
 	mv $*.d dep/$*.d
 
 %.o: %.c config.h | dep
-	$(CC) $(CPPFLAGS) $(MDIR1) $(MDIR2) $(CFLAGS) @DEPENDENCY_FLAG@ -c $< -o $*.o
+	$(CC) $(CPPFLAGS) $(MDIR1) $(MDIR2) $(CFLAGS) $(PICFLAGS) @DEPENDENCY_FLAG@ -c $< -o $*.o
 	mv $*.d dep/$*.d
 
 tables.cc: $(srcdir)/draw_tt.c
