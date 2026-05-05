@@ -17,7 +17,7 @@ Regenerate: After `emmake make` at the repo root:
   ./scripts/pack-wasm-bundle.sh
   ./scripts/pack-wasm-bundle.sh wasm-web-bundle_icarus_dynamic
 (You can pass the target directory as the first argument; for the browser `dlopen`
-bundle see the README under `wasm-web-bundle_icarus_dynamic/`.)
+bundle see `wasm-web-bundle_icarus_dynamic/README.txt`.)
 
 When configured with emcc, root **`make all`** refreshes `wasm-web-bundle_icarus_dynamic/`
 at the end, so the dylink bundle can stay up to date without a separate pack step.

@@ -1,5 +1,24 @@
 wasm-web-bundle_icarus_dynamic
 ================================
+
+GPL-2.0 / corresponding source (short)
+----------------------------------------
+WASM and JS wrappers here are built from **Icarus Verilog** (GPL-2.0) on the **semisgdh/iverilog-wasm**
+`wasm-port` branch.
+
+- **Upstream:** https://github.com/steveicarus/iverilog
+- **This fork (WASM build):** https://github.com/semisgdh/iverilog-wasm (branch `wasm-port`)
+
+For public notices, prefer the full commit SHA from **`SOURCE_REVISION.txt`** (or a **release tag** that
+points to that commit), not the branch name alone. After packing, this folder also has:
+
+- **`CORRESPONDING_SOURCE.md`** — full English corresponding-source note (same as `docs/CORRESPONDING_SOURCE.md`)
+- **`SOURCE_REVISION.txt`** — Git commit and date used for this bundle
+
+Product-specific compliance: consult counsel if needed.
+
+---
+
 This tree collects the Emscripten **dynamic linking** build output (`emcc` with
 `--enable-wasm-dylink`) via `scripts/pack-wasm-bundle.sh wasm-web-bundle_icarus_dynamic`.
 

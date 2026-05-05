@@ -1,14 +1,22 @@
-# wasm-web-bundle_icarus_dynamic/ (relative paths)
+# wasm-web-bundle_icarus_static/ (relative paths) — same layout as icarus_dynamic; oz+dylink out-of-tree build
 FILE_MANIFEST.txt
 README.txt
-# Written by scripts/pack-wasm-bundle.sh (GPL corresponding source)
+# Optional: build-icarus-wasm-static-oz.sh
+BUILD_LOG.txt
+# Written by scripts/pack-wasm-bundle.sh
 CORRESPONDING_SOURCE.md
 SOURCE_REVISION.txt
+# Optional symlinks: ivl.js -> ivl, etc. (for node bin/ivl.js)
+bin/iverilog.js
+bin/ivl.js
+bin/ivlpp.js
+bin/vhdlpp.js
+bin/vvp.js
 bin/iverilog
 bin/iverilog.wasm
 bin/ivl
 bin/ivl.wasm
-bin/ivlpp.js
+bin/ivlpp
 bin/ivlpp.wasm
 bin/vhdlpp
 bin/vhdlpp.wasm

@@ -136,6 +136,9 @@ for (const wasmPath of wasmPaths) {
         exitCode = 1;
       }
       if (missingHost.length) {
+        console.error(
+          '[strict] This outcome is expected on valid dylink builds (~70+ “missing”): libc/env symbols and GOT are not all wasm *exports*. Do not use --strict for release gating; run the same command without --strict.',
+        );
         const vpiEx = new Set(
           WebAssembly.Module.exports(
             new WebAssembly.Module(fs.readFileSync(vpiPath)),
